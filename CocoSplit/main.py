@@ -280,23 +280,6 @@ def write_new_annotation(id, image_id, category_id, bbox, area, segmentation, is
 
     data2['annotations'].append(new_annotation)
 
-
-def try_new_annotation():
-    id = 9
-    image_id = 9
-    category_id = 9
-    bbox = [
-        9,
-        9,
-        9,
-        9
-    ]
-    area = 9
-    segmentation = []
-    iscrowd = 9
-    write_new_annotation(id, image_id, category_id, bbox, area, segmentation, iscrowd)
-
-#try_new_annotation()
 slice_images()
 adjust_annotations()
 
