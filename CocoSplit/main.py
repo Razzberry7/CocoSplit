@@ -4,6 +4,7 @@ import json
 import os
 import zipfile
 import random
+import json2yolo
 
 ### Variables ###
 
@@ -125,7 +126,8 @@ def random_split():
     images = old_coco_data['images']
 
     # Create a new folder (if one doesn't exist already)
-    os.mkdir("./splits")
+    if not os.path.exists("./splits"):
+        os.mkdir("./splits")
 
     # Delete all existing files in that folder (if any exist)
     directory = 'splits'
@@ -291,7 +293,8 @@ def adjust_random_annotations():
 def downsize():
 
     # Make a folder (if one doesn't exist)
-    os.mkdir("./splits_resized")
+    if not os.path.exists("./splits_resized"):
+        os.mkdir("./splits_resized")
 
     # Remove all files in the folder (if they exist)
     directory = 'splits_resized'
@@ -342,6 +345,11 @@ def downsize():
     write_to_json(resized_split_list, resized_new_annotation_list)
 
 
+# Convert coco file format to yolov5 file format
+def convert_json2yolo():
+    json2yolo.convert()
+
+
 
 ## COCO SPLIT HELPERS
 # Method to write new image in coco format
@@ -388,3 +396,6 @@ sort_annotations()
 # Save everything to the new JSON file
 with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
+
+
+convert_json2yolo()
