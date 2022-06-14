@@ -4,7 +4,7 @@ import json
 import os
 import zipfile
 import random
-import json2yolo
+import coco_to_yolo
 
 ### Variables ###
 
@@ -321,7 +321,7 @@ def downsize():
         scaled_down_split = cv2.resize(split_img, None, fx=scale_down_factor, fy=scale_down_factor, interpolation=cv2.INTER_LINEAR)
 
         # Filename of each resized split
-        file_name = './splits_resized/' + str(i) + '--' + str(int(split_list[i]['width'] * scale_down_factor)) + 'x' + str(int(split_list[i]['height'] * scale_down_factor)) + '.jpg'
+        file_name = './splits_resized/' + str(hash(str(i // num_of_splits) + '_' + str(i % num_of_splits))) + '.jpg'
 
         # Saving the split
         cv2.imwrite(file_name, scaled_down_split)
@@ -347,7 +347,7 @@ def downsize():
 
 # Convert coco file format to yolov5 file format
 def convert_json2yolo():
-    json2yolo.convert()
+    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json").convert()
 
 
 
