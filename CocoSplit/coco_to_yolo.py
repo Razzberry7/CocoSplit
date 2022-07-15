@@ -73,6 +73,17 @@ class ConvertCOCOToYOLO:
         
         check_set = set()
 
+        # Create a new folder (if one doesn't exist already)
+        if not os.path.exists("./yolo"):
+            os.mkdir("./yolo")
+
+        # Delete all existing files in that folder (if any exist)
+        directory = 'yolo'
+        for filename in os.listdir(directory):
+            f = os.path.join(directory, filename)
+            os.remove(f)
+
+
         # Retrieve data
         for i in range(len(data[annotation_key])):
 
@@ -92,15 +103,7 @@ class ConvertCOCOToYOLO:
             kitti_bbox = [boundbox[0], boundbox[1], boundbox[2] + boundbox[0], boundbox[3] + boundbox[1]]
             yolo_bbox = self.convert_labels(image_path, kitti_bbox[0], kitti_bbox[1], kitti_bbox[2], kitti_bbox[3])
 
-            # Create a new folder (if one doesn't exist already)
-            if not os.path.exists("./yolo"):
-                os.mkdir("./yolo")
 
-            # Delete all existing files in that folder (if any exist)
-            directory = 'yolo'
-            for filename in os.listdir(directory):
-                f = os.path.join(directory, filename)
-                os.remove(f)
 
             # Prepare for export
             filename = f'./yolo/{image_id}.txt'
@@ -121,6 +124,8 @@ class ConvertCOCOToYOLO:
                 file = open(filename, "w")
                 file.write(content)
                 file.close()
+
+
 
 
 # To run in as a class

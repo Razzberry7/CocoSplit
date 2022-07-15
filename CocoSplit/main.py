@@ -9,7 +9,7 @@ import coco_to_yolo
 ### Variables ###
 
 # Number of splits created from 1 original image
-num_of_splits = 10
+num_of_splits = 1
 
 # List of the splits
 split_list = []
