@@ -6,10 +6,14 @@ import zipfile
 import random
 import coco_to_yolo
 
-### Variables ###
+### Config ###
 
 # Number of splits created from 1 original image
-num_of_splits = 1
+num_of_splits = 30
+
+### Variables ###
+
+zip_filename = ""
 
 # List of the splits
 split_list = []
@@ -31,6 +35,7 @@ path = "./presplit/"
 files = os.listdir(path)
 for file in files:
     if file.endswith(".zip"):
+        zip_filename = file
         filePath = path + "/" + file
         zip_file = zipfile.ZipFile(filePath)
         for names in zip_file.namelist():
@@ -63,18 +68,18 @@ new_coco_data = \
         "categories": [
             {
                 "id": 0,
-                "name": "berry",
+                "name": "berries",
                 "supercategory": "none"
             },
             {
                 "id": 1,
                 "name": "blue",
-                "supercategory": "berry"
+                "supercategory": "berries"
             },
             {
                 "id": 2,
                 "name": "green",
-                "supercategory": "berry"
+                "supercategory": "berries"
             }
         ],
         "images": [],
@@ -83,6 +88,8 @@ new_coco_data = \
 
 # Method to sort the annotations by what image they belong to (original JSON is unsorted)
 def sort_annotations():
+
+    print("Sorting annotations...")
 
     # Dictionary of annotations from original coco file
     annotations = old_coco_data['annotations']
@@ -95,6 +102,8 @@ def sort_annotations():
 
 # Method to split the annotations up by which image they correspond to
 def split_sorted_annotations(sorted_annotations):
+
+    print("Separating sorted annotations by original image...")
 
     # Dictionary of images from original coco file
     images = old_coco_data['images']
@@ -121,6 +130,8 @@ def split_sorted_annotations(sorted_annotations):
 
 # Method to randomly split the original images
 def random_split():
+
+    print("Splitting original images...")
 
     # Dictionary of images from original coco file
     images = old_coco_data['images']
@@ -194,6 +205,8 @@ def random_split():
 
 # Method to adjust the annotations for each split
 def adjust_random_annotations():
+
+    print("Adjusting annotations for each split...")
 
     # Access global vars
     global image_annotation_lists, split_origins
@@ -292,6 +305,8 @@ def adjust_random_annotations():
 # Downsize the split images (better performance in yolov5)
 def downsize():
 
+    print("Downsizing split images...")
+
     # Make a folder (if one doesn't exist)
     if not os.path.exists("./splits_resized"):
         os.mkdir("./splits_resized")
@@ -347,7 +362,11 @@ def downsize():
 
 # Convert coco file format to yolov5 file format
 def convert_json2yolo():
-    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json").convert()
+
+    print("Converting to yolo...")
+
+    # Call the other script to convert the coco to yolo (and prepare the yolo file for use)
+    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", zip_filename, "./presplit/train/").convert()
 
 
 
@@ -397,5 +416,5 @@ sort_annotations()
 with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
 
-
+# Converts the coco json to yolo format for training
 convert_json2yolo()

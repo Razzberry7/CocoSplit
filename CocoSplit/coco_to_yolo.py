@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import cv2
 import json
 
@@ -24,9 +24,11 @@ class ConvertCOCOToYOLO:
         
     """
 
-    def __init__(self, img_folder, json_path):
+    def __init__(self, img_folder, json_path, zip_filename, original_img_path):
         self.img_folder = img_folder
         self.json_path = json_path
+        self.zip_filename = zip_filename
+        self.original_img_path = original_img_path
         
 
     def get_img_shape(self, img_path):
@@ -73,15 +75,66 @@ class ConvertCOCOToYOLO:
         
         check_set = set()
 
+        ### Create new directory based off of original zip name
+        parent_dir = "./" + self.zip_filename
         # Create a new folder (if one doesn't exist already)
-        if not os.path.exists("./yolo"):
-            os.mkdir("./yolo")
-
+        if not os.path.exists(parent_dir):
+            os.mkdir(parent_dir)
         # Delete all existing files in that folder (if any exist)
-        directory = 'yolo'
-        for filename in os.listdir(directory):
-            f = os.path.join(directory, filename)
-            os.remove(f)
+        else:
+            shutil.rmtree(parent_dir)
+            os.mkdir(parent_dir)
+
+        ### Create a directory to hold the original images
+        parent_image_dir = parent_dir + "/original_images/"
+        # Create a new folder (if one doesn't exist already)
+        if not os.path.exists(parent_image_dir):
+            shutil.copytree(self.original_img_path, parent_image_dir)
+        else:
+            shutil.rmtree(parent_image_dir)
+            shutil.copytree(self.original_img_path, parent_image_dir)
+        # Remove the json file
+        files = os.listdir(parent_image_dir)
+        for file in files:
+            if file.endswith(".json"):
+                f = os.path.join(parent_image_dir, file)
+                os.remove(f)
+
+
+        ### Create a train directory
+        train_dir = parent_dir + "/train/"
+        # Create a new folder (if one doesn't exist already)
+        if not os.path.exists(train_dir):
+            os.mkdir(train_dir)
+
+        ### Create an image directory
+        train_image_dir = train_dir + "images/"
+        # Create a new folder (if one doesn't exist already)
+        if not os.path.exists(train_image_dir):
+            shutil.copytree(self.img_folder, train_image_dir)
+        else:
+            shutil.rmtree(train_image_dir)
+            shutil.copytree(self.img_folder, train_image_dir)
+        # Remove the json file
+        files = os.listdir(train_image_dir)
+        for file in files:
+            if file.endswith(".json"):
+                f = os.path.join(train_image_dir, file)
+                os.remove(f)
+
+        ### Create a labels directory
+        train_label_dir = train_dir + "labels/"
+        # Create a new folder (if one doesn't exist already)
+        if not os.path.exists(train_label_dir):
+            os.mkdir(train_label_dir)
+
+        ### Create a data.yaml file
+        with open(parent_dir + '/data.yaml', 'w') as f:
+            f.write('train: ../data/weights/' + self.zip_filename + '/train/images\n')
+            f.write('val: ../data/weights/' + self.zip_filename + '/test/images\n')
+            f.write('\n')
+            f.write('nc: 3\n')
+            f.write("names: ['berries', 'blue', 'green']")
 
 
         # Retrieve data
@@ -106,7 +159,7 @@ class ConvertCOCOToYOLO:
 
 
             # Prepare for export
-            filename = f'./yolo/{image_id}.txt'
+            filename = f'{train_label_dir}{image_id}.txt'
             # Save to run folder that can be renamed
             content =f"{category_id} {yolo_bbox[0]} {yolo_bbox[1]} {yolo_bbox[2]} {yolo_bbox[3]}"
 
