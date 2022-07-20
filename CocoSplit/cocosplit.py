@@ -8,12 +8,14 @@ import coco_to_yolo
 
 ### Config ###
 
-# Number of splits created from 1 original image
-num_of_splits = 30
+# Number of splits created from 1 original
+num_of_splits = input("How many splits should be made per original photo?\n")
+
+# File name of the yolo after conversion
+finished_filename = input("What do you want to name the finished directory?\n")
 
 ### Variables ###
 
-zip_filename = ""
 
 # List of the splits
 split_list = []
@@ -35,7 +37,6 @@ path = "./presplit/"
 files = os.listdir(path)
 for file in files:
     if file.endswith(".zip"):
-        zip_filename = file
         filePath = path + "/" + file
         zip_file = zipfile.ZipFile(filePath)
         for names in zip_file.namelist():
@@ -366,7 +367,7 @@ def convert_json2yolo():
     print("Converting to yolo...")
 
     # Call the other script to convert the coco to yolo (and prepare the yolo file for use)
-    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", zip_filename, "./presplit/train/").convert()
+    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", finished_filename, "./presplit/train/").convert()
 
 
 

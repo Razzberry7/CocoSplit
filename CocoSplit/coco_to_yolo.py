@@ -24,10 +24,10 @@ class ConvertCOCOToYOLO:
         
     """
 
-    def __init__(self, img_folder, json_path, zip_filename, original_img_path):
+    def __init__(self, img_folder, json_path, finished_filename, original_img_path):
         self.img_folder = img_folder
         self.json_path = json_path
-        self.zip_filename = zip_filename
+        self.finished_filename = finished_filename
         self.original_img_path = original_img_path
         
 
@@ -75,8 +75,8 @@ class ConvertCOCOToYOLO:
         
         check_set = set()
 
-        ### Create new directory based off of original zip name
-        parent_dir = "./" + self.zip_filename
+        ### Create new directory based off of the passed in name
+        parent_dir = "./" + self.finished_filename
         # Create a new folder (if one doesn't exist already)
         if not os.path.exists(parent_dir):
             os.mkdir(parent_dir)
@@ -130,8 +130,8 @@ class ConvertCOCOToYOLO:
 
         ### Create a data.yaml file
         with open(parent_dir + '/data.yaml', 'w') as f:
-            f.write('train: ../data/weights/' + self.zip_filename + '/train/images\n')
-            f.write('val: ../data/weights/' + self.zip_filename + '/test/images\n')
+            f.write('train: ../data/weights/' + self.finished_filename + '/train/images\n')
+            f.write('val: ../data/weights/' + self.finished_filename + '/test/images\n')
             f.write('\n')
             f.write('nc: 3\n')
             f.write("names: ['berries', 'blue', 'green']")
