@@ -9,7 +9,7 @@ import coco_to_yolo
 ### Config ###
 
 # Number of splits created from 1 original
-num_of_splits = input("How many splits should be made per original photo?\n")
+num_of_splits = int(input("How many splits should be made per original photo?\n"))
 
 # File name of the yolo after conversion
 finished_filename = input("What do you want to name the finished directory?\n")
