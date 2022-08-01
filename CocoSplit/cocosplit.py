@@ -1,7 +1,6 @@
 ### Imports ###
 import shutil
 import sys
-
 import cv2
 import json
 import os
