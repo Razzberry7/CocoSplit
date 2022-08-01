@@ -24,10 +24,10 @@ class ConvertCOCOToYOLO:
         
     """
 
-    def __init__(self, img_folder, json_path, finished_filename, original_img_path):
+    def __init__(self, img_folder, json_path, destination_dir, original_img_path):
         self.img_folder = img_folder
         self.json_path = json_path
-        self.finished_filename = finished_filename
+        self.destination_dir = destination_dir
         self.original_img_path = original_img_path
         
 
@@ -76,17 +76,17 @@ class ConvertCOCOToYOLO:
         check_set = set()
 
         ### Create new directory based off of the passed in name
-        parent_dir = "./" + self.finished_filename
         # Create a new folder (if one doesn't exist already)
-        if not os.path.exists(parent_dir):
-            os.mkdir(parent_dir)
+        destination_dir = self.destination_dir
+        if not os.path.exists(destination_dir):
+            os.mkdir(destination_dir)
         # Delete all existing files in that folder (if any exist)
         else:
-            shutil.rmtree(parent_dir)
-            os.mkdir(parent_dir)
+            shutil.rmtree(destination_dir)
+            os.mkdir(destination_dir)
 
         ### Create a directory to hold the original images
-        parent_image_dir = parent_dir + "/original_images/"
+        parent_image_dir = destination_dir + "original_images/"
         # Create a new folder (if one doesn't exist already)
         if not os.path.exists(parent_image_dir):
             shutil.copytree(self.original_img_path, parent_image_dir)
@@ -102,7 +102,7 @@ class ConvertCOCOToYOLO:
 
 
         ### Create a train directory
-        train_dir = parent_dir + "/train/"
+        train_dir = destination_dir + "train/"
         # Create a new folder (if one doesn't exist already)
         if not os.path.exists(train_dir):
             os.mkdir(train_dir)
@@ -129,7 +129,7 @@ class ConvertCOCOToYOLO:
             os.mkdir(train_label_dir)
 
         ### Create a data.yaml file
-        with open(parent_dir + '/data.yaml', 'w') as f:
+        with open(destination_dir + 'data.yaml', 'w') as f:
             f.write('train: ../data/weights/' + self.finished_filename + '/train/images\n')
             f.write('val: ../data/weights/' + self.finished_filename + '/test/images\n')
             f.write('\n')

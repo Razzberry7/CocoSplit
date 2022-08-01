@@ -1,21 +1,16 @@
 ### Imports ###
+import shutil
+import sys
+
 import cv2
 import json
 import os
 import zipfile
 import random
 import coco_to_yolo
-
-### Config ###
-
-# Number of splits created from 1 original
-num_of_splits = int(input("How many splits should be made per original photo?\n"))
-
-# File name of the yolo after conversion
-finished_filename = input("What do you want to name the finished directory?\n")
+################################################
 
 ### Variables ###
-
 
 # List of the splits
 split_list = []
@@ -30,10 +25,24 @@ image_annotation_lists = []
 split_origins = []
 
 
+# Directory of the dataset to split (passed in from start.py)
+dataset_dir = sys.argv[1]
+
+# Directory that the finished directory will be sent to (passed in from start.py)
+destination_dir = sys.argv[2]
+
+# Name of the finished directory (passed in from start.py)
+destination_dir = destination_dir + sys.argv[3] + "/"
+
+# Number of splits per image (passed in from start.py)
+num_of_splits = sys.argv[4]
+
+################################################
+
 ###### CODE STARTS HERE #######
 
 # Unzip roboflow zip in ./presplit folder
-path = "./presplit/"
+path = dataset_dir
 files = os.listdir(path)
 for file in files:
     if file.endswith(".zip"):
@@ -44,7 +53,7 @@ for file in files:
         zip_file.close()
 
 # Open the original JSON file, store it as a variable, and close the file
-file = open('./presplit/train/_annotations.coco.json')
+file = open(dataset_dir + 'train/_annotations.coco.json')
 old_coco_data = json.load(file)
 file.close()
 
@@ -360,18 +369,26 @@ def downsize():
     # Write everything to JSON
     write_to_json(resized_split_list, resized_new_annotation_list)
 
-
 # Convert coco file format to yolov5 file format
 def convert_json2yolo():
 
     print("Converting to yolo...")
 
     # Call the other script to convert the coco to yolo (and prepare the yolo file for use)
-    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", finished_filename, "./presplit/train/").convert()
+    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", destination_dir, "./presplit" + dataset_dir + "/train/").convert()
 
 
+# Clear the dirs created during Cocosplit
+def clear_dirs():
 
-## COCO SPLIT HELPERS
+    # Delete splits folder
+    shutil.rmtree('./splits/')
+
+    # Delete splits_resized folder
+    shutil.rmtree('./splits_resized/')
+
+
+## COCO SPLIT HELPERS ##
 # Method to write new image in coco format
 def write_new_image(id, license, file_name, height, width, date_captured, split_list):
     new_image = {
@@ -384,7 +401,6 @@ def write_new_image(id, license, file_name, height, width, date_captured, split_
     }
 
     split_list.append(new_image)
-
 
 # Method to write new annotation in coco format
 def write_new_annotation(id, image_id, category_id, bbox, area, segmentation, iscrowd, new_annotation_list):
@@ -400,7 +416,6 @@ def write_new_annotation(id, image_id, category_id, bbox, area, segmentation, is
 
     new_annotation_list.append(new_annotation)
 
-
 # Separate method for appending to split_list, and writing
 def write_to_json(split_list, new_annotation_list):
     for i in range(len(split_list)):
@@ -410,8 +425,12 @@ def write_to_json(split_list, new_annotation_list):
         new_coco_data['annotations'].append(new_annotation_list[i])
 
 
+################################################
+# Clear out unused dirs
+clear_dirs()
+
 # Starts the program essentially
-sort_annotations()
+#sort_annotations()
 
 # Save everything to the new JSON file
 with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
@@ -419,3 +438,7 @@ with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
 
 # Converts the coco json to yolo format for training
 convert_json2yolo()
+
+# Clear out unused dirs
+clear_dirs()
+################################################
