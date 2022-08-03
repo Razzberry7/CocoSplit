@@ -160,10 +160,10 @@ def random_split():
 
     # Nested while loop that splits images
     i = 0
-    while i < len(os.listdir('./presplit/train')) - 1:
+    while i < len(os.listdir(dataset_dir + 'train')) - 1:
 
         # Import image
-        original_img = cv2.imread('./presplit/train/' + images[i]["file_name"])
+        original_img = cv2.imread(dataset_dir + 'train/' + images[i]["file_name"])
 
         # List of splits for each picture
         splits = []
@@ -381,10 +381,12 @@ def convert_json2yolo():
 def clear_dirs():
 
     # Delete splits folder
-    shutil.rmtree('./splits/')
+    if os.path.exists('./splits/'):
+        shutil.rmtree('./splits/')
 
     # Delete splits_resized folder
-    shutil.rmtree('./splits_resized/')
+    if os.path.exists('./splits_resized/'):
+        shutil.rmtree('./splits_resized/')
 
 
 ## COCO SPLIT HELPERS ##
