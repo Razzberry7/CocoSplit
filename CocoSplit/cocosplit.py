@@ -279,7 +279,7 @@ def adjust_random_annotations():
                 new_y1 = old_y - curr_split_origin[1]
 
                 # New width
-                if (new_x1 < curr_split['width']):
+                if (new_x1 < curr_split['width'] and new_x1 >= 0):
                     if (new_x1 + old_width > curr_split['width']):
                         new_width1 = curr_split['width'] - new_x1
                     else:
@@ -288,7 +288,7 @@ def adjust_random_annotations():
                     continue
 
                 # New height
-                if (new_y1 < curr_split['height']):
+                if (new_y1 < curr_split['height'] and new_y1 >= 0):
                     if (new_y1 + old_height > curr_split['height']):
                         new_height1 = curr_split['height'] - new_y1
                     else:
@@ -442,5 +442,5 @@ with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
 convert_json2yolo()
 
 # Clear out unused dirs
-clear_dirs()
+#clear_dirs()
 ################################################
