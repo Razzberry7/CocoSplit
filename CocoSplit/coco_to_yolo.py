@@ -21,15 +21,14 @@ class ConvertCOCOToYOLO:
                 3:1645
             ]
         }
-        
     """
 
-    def __init__(self, img_folder, json_path, destination_dir, original_img_path):
+    def __init__(self, img_folder, json_path, destination_dir, original_img_path, finished_name):
         self.img_folder = img_folder
         self.json_path = json_path
         self.destination_dir = destination_dir
         self.original_img_path = original_img_path
-        
+        self.finished_name = finished_name
 
     def get_img_shape(self, img_path):
         img = cv2.imread(img_path)
@@ -130,8 +129,8 @@ class ConvertCOCOToYOLO:
 
         ### Create a data.yaml file
         with open(destination_dir + 'data.yaml', 'w') as f:
-            f.write('train: ../data/weights/' + self.finished_filename + '/train/images\n')
-            f.write('val: ../data/weights/' + self.finished_filename + '/test/images\n')
+            f.write('train: ../data/weights/' + self.finished_name + '/train/images\n')
+            f.write('val: ../data/weights/' + self.finished_name + '/test/images\n')
             f.write('\n')
             f.write('nc: 3\n')
             f.write("names: ['berries', 'blue', 'green']")
