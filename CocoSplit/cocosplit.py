@@ -37,6 +37,9 @@ destination_dir = destination_dir + finished_name + "/"
 # Number of splits per image (passed in from start.py)
 num_of_splits = int(sys.argv[4])
 
+# Random seed
+seed = sys.argv[5]
+
 ################################################
 
 ###### CODE STARTS HERE #######
@@ -138,10 +141,35 @@ def split_sorted_annotations(sorted_annotations):
     # Call the next step to randomly split the images
     random_split()
 
+# Method to create a random seed to replicate split results on same dataset
+def random_seed(length):
+    global seed
+    
+    seed = ""
+    choices = "0123456789abcdefghijklmnopqrstuvwxyz"
+    
+    i = 0
+    while (i < length):
+        seed = seed + random.choice(choices)
+        i = i + 1
+
+    original_stdout = sys.stdout
+    with open('seed.txt', 'w') as f:
+        sys.stdout = f
+        print(seed)
+        sys.stdout = original_stdout
+
 # Method to randomly split the original images
 def random_split():
 
     print("Splitting original images...")
+
+    # Access global var - split origins (x,y)
+    global split_origins, seed, num_of_splits
+
+    # Generate a random seed for the splits
+    if (seed == "-1"):
+       random_seed(num_of_splits)
 
     # Dictionary of images from original coco file
     images = old_coco_data['images']
@@ -155,9 +183,6 @@ def random_split():
     for filename in os.listdir(directory):
         f = os.path.join(directory, filename)
         os.remove(f)
-
-    # Access global var - split origins (x,y)
-    global split_origins
 
     # Nested while loop that splits images
     i = 0
@@ -176,8 +201,10 @@ def random_split():
             new_height = int(images[i]['height'] / 2)
             new_width = int(images[i]['width'] / 2)
 
-            # Generate random origin (within bounds)
+            # Generate random origin (within bounds
+            random.seed(seed[j:j + 1:1])
             random_y = random.randint(0, (images[i]['height'] - new_height))
+            random.seed(seed[j:j + 1:1])
             random_x = random.randint(0, (images[i]['width'] - new_width))
 
             # Crop the original image to create the split using the above values

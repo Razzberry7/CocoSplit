@@ -15,9 +15,12 @@ finished_filename = input("What do you want to name the finished directory? (ex:
 
 # Number of splits created from 1 original
 num_of_splits = input("How many splits should be made per original photo?\n")
+
+# Custom seed for random splits
+seed = input("Enter the seed you would like to use for the random splits (if none, input -1):\n")
 ################################################
 
 # Starts the program
-os.system("nohup python cocosplit.py " + dataset_dir + " " + destination_dir + " " + finished_filename + " " + num_of_splits + " &")
+os.system("nohup python cocosplit.py " + dataset_dir + " " + destination_dir + " " + finished_filename + " " + num_of_splits + " " + seed + " &")
 
 
