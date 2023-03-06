@@ -18,9 +18,13 @@ num_of_splits = input("How many splits should be made per original photo?\n")
 
 # Custom seed for random splits
 seed = input("Enter the seed you would like to use for the random splits (if none, input -1):\n")
+
+# Custom seed for random splits
+blurFlag = input("Blur the pictures? (Y/N):\n")
+
 ################################################
 
 # Starts the program
-os.system("nohup python cocosplit.py " + dataset_dir + " " + destination_dir + " " + finished_filename + " " + num_of_splits + " " + seed + " &")
+os.system("nohup python cocosplit.py " + dataset_dir + " " + destination_dir + " " + finished_filename + " " + num_of_splits + " " + seed + " " + blurFlag + " &")
 
 

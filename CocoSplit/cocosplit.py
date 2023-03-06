@@ -23,22 +23,33 @@ image_annotation_lists = []
 # List of the splits' origins (needed for adjusting annotations)
 split_origins = []
 
+# List of resized splits
+resized_split_list = []
 
 # Directory of the dataset to split (passed in from start.py)
 dataset_dir = sys.argv[1]
+#dataset_dir = "./data/merged_70/"
 
 # Directory that the finished directory will be sent to (passed in from start.py)
 destination_dir = sys.argv[2]
+#destination_dir = "./"
 
 # Name of the finished directory (passed in from start.py)
 finished_name = sys.argv[3]
+#finished_name = "blur_test"
 destination_dir = destination_dir + finished_name + "/"
 
 # Number of splits per image (passed in from start.py)
 num_of_splits = int(sys.argv[4])
+#num_of_splits = 1
 
 # Random seed
 seed = sys.argv[5]
+#seed = "-1"
+
+# Blur flag
+blurFlag = sys.argv[6]
+#blurFlag = "Y"
 
 ################################################
 
@@ -355,7 +366,7 @@ def downsize():
         os.remove(f)
 
     # Access global vars
-    global split_list, new_annotation_list
+    global split_list, new_annotation_list, resized_split_list
 
     # Specifying a single scale factor
     scale_down_factor = 1/3
@@ -379,22 +390,95 @@ def downsize():
         cv2.imwrite(file_name, scaled_down_split)
 
         # Write resized image
-        write_new_image(split_list[i]['id'], split_list[i]['license'], file_name, str(int(split_list[i]['height'] * scale_down_factor)), str(int(split_list[i]['width'] * scale_down_factor)), split_list[i]['date_captured'], resized_split_list)
-
+        write_new_image(split_list[i]['id'],
+                        split_list[i]['license'],
+                        file_name,
+                        str(int(split_list[i]['height'] * scale_down_factor)),
+                        str(int(split_list[i]['width'] * scale_down_factor)),
+                        split_list[i]['date_captured'],
+                        resized_split_list)
 
     # Resize all of the annotations in the new_annotation_list
     resized_new_annotation_list = []
     for i in range(len(new_annotation_list)):
 
         # Calculate new bbox and area
-        downsized_bbox = [int(new_annotation_list[i]['bbox'][0] * scale_down_factor), int(new_annotation_list[i]['bbox'][1] * scale_down_factor), int(new_annotation_list[i]['bbox'][2] * scale_down_factor), int(new_annotation_list[i]['bbox'][3] * scale_down_factor)]
+        downsized_bbox = [int(new_annotation_list[i]['bbox'][0] * scale_down_factor),
+                          int(new_annotation_list[i]['bbox'][1] * scale_down_factor),
+                          int(new_annotation_list[i]['bbox'][2] * scale_down_factor),
+                          int(new_annotation_list[i]['bbox'][3] * scale_down_factor)]
         downsized_area = int(downsized_bbox[2] * downsized_bbox[3])
 
         # Write new annotation
-        write_new_annotation(new_annotation_list[i]['id'], new_annotation_list[i]['image_id'], new_annotation_list[i]['category_id'], downsized_bbox, downsized_area, new_annotation_list[i]['segmentation'], new_annotation_list[i]['iscrowd'], resized_new_annotation_list)
+        write_new_annotation(new_annotation_list[i]['id'], new_annotation_list[i]['image_id'],
+                             new_annotation_list[i]['category_id'],
+                             downsized_bbox,
+                             downsized_area,
+                             new_annotation_list[i]['segmentation'],
+                             new_annotation_list[i]['iscrowd'],
+                             resized_new_annotation_list)
 
     # Write everything to JSON
     write_to_json(resized_split_list, resized_new_annotation_list)
+
+    # If the blur flag is true, then blur
+    if blurFlag == "Y":
+        blur()
+
+# Apply a blur effect on the images
+def blur():
+
+    print("Blurring the images...")
+
+    # Make a folder (if one doesn't exist)
+    if not os.path.exists("./blurred"):
+        os.mkdir("./blurred")
+
+    # Remove all files in the folder (if they exist)
+    directory = 'blurred'
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+        os.remove(f)
+
+    # Access global vars
+    global resized_split_list, new_annotation_list
+
+    # Specifying a ksize
+    ksize = (2, 2)
+
+    # List to store the new resized splits
+    blurred_list = []
+
+    # For loop to resize each split in the split_list
+    for i in range(len(resized_split_list)):
+
+        # Grab the split and store it
+        image = cv2.imread(resized_split_list[i]['file_name'])
+
+        # Blur the image
+        blurred_image = cv2.blur(image, ksize)
+
+        # Original filename
+        old_name = os.path.splitext(resized_split_list[i]['file_name'])[0].split('/')[2]
+
+        # Filename of each blurred split
+        file_name = './blurred/' + old_name + '.jpg'
+
+
+        # Save the blurred image
+        cv2.imwrite(file_name, blurred_image)
+
+        write_new_image(resized_split_list[i]['id'],
+                        resized_split_list[i]['license'],
+                        file_name,
+                        str(int(resized_split_list[i]['height'])),
+                        str(int(resized_split_list[i]['width'])),
+                        resized_split_list[i]['date_captured'],
+                        blurred_list)
+
+    # Write everything to JSON
+    write_to_json(blurred_list, new_annotation_list)
+
 
 # Convert coco file format to yolov5 file format
 def convert_json2yolo():
@@ -466,7 +550,7 @@ with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
 
 # Converts the coco json to yolo format for training
-convert_json2yolo()
+#convert_json2yolo()
 
 # Clear out unused dirs
 #clear_dirs()
