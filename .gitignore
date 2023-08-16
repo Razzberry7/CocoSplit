@@ -2,3 +2,9 @@ Cocosplit/splits/*
 Cocosplit/splits_resized/*
 Cocosplit/presplit/train/*
 CocoSplit/yolo/*
+CocoSplit/data/*
+CocoSplit/seeds/*
+CocoSplit/rand_test/*
+CocoSplit/*.tar.gz
+CocoSplit/nohup.out
+Github_Token.txt

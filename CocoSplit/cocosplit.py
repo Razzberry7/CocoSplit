@@ -26,26 +26,37 @@ split_origins = []
 # List of resized splits
 resized_split_list = []
 
+# Mode of CocoSplit (0 = Splits & Augments | 1 = Just Augmentations)
+mode = sys.argv[1]
+
 # Directory of the dataset to split (passed in from start.py)
-dataset_dir = sys.argv[1]
-#dataset_dir = "./data/merged_70/"
-
-# Directory that the finished directory will be sent to (passed in from start.py)
-destination_dir = sys.argv[2]
-#destination_dir = "./"
-
-# Name of the finished directory (passed in from start.py)
-finished_name = sys.argv[3]
-#finished_name = "blur_test"
-destination_dir = destination_dir + finished_name + "/"
+dataset_dir = sys.argv[2]
 
 # Number of splits per image (passed in from start.py)
-num_of_splits = int(sys.argv[4])
-#num_of_splits = 1
+num_of_splits = int(sys.argv[3])
 
 # Random seed
-seed = sys.argv[5]
-#seed = "-1"
+seed = sys.argv[4]
+
+# Blur Augmentation flag
+blurFlag = sys.argv[5]
+
+# Blurring K-size
+blurAmount = sys.argv[6]
+
+# Resize Augmentation flag
+resizeFlag = sys.argv[7]
+
+# Resizing Percentage (100 = original size)
+blurFlag = sys.argv[8]
+
+# Directory that the finished directory will be sent to (passed in from start.py)
+destination_dir = sys.argv[9]
+
+# Name of the finished directory (passed in from start.py)
+finished_name = sys.argv[10]
+
+destination_dir = destination_dir + finished_name + "/"
 
 # Blur flag
 blurFlag = sys.argv[6]
@@ -154,7 +165,7 @@ def split_sorted_annotations(sorted_annotations):
 
 # Method to create a random seed to replicate split results on same dataset
 def random_seed(length):
-    global seed
+    global seed, finished_name
     
     seed = ""
     choices = "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -164,8 +175,9 @@ def random_seed(length):
         seed = seed + random.choice(choices)
         i = i + 1
 
+    seed_name = './seeds/' + finished_name + '_seed.txt/'
     original_stdout = sys.stdout
-    with open('seed.txt', 'w') as f:
+    with open(seed_name, 'w') as f:
         sys.stdout = f
         print(seed)
         sys.stdout = original_stdout
@@ -209,8 +221,12 @@ def random_split():
         while j < num_of_splits:
 
             # Replicate robosplit by creating splits made of half the dimensions of original image
-            new_height = int(images[i]['height'] / 2)
-            new_width = int(images[i]['width'] / 2)
+            #new_height = int(images[i]['height'] / 2)
+            #new_width = int(images[i]['width'] / 2)
+
+	    # Creating splits of 640x640 - 1280x1280
+	    new_height = random.randint(640, 1280)
+	    new_width = new_height
 
             # Generate random origin (within bounds
             random.seed(seed[j:j + 1:1])
@@ -369,7 +385,7 @@ def downsize():
     global split_list, new_annotation_list, resized_split_list
 
     # Specifying a single scale factor
-    scale_down_factor = 1/3
+    scale_down_factor = resizeAmount / 100
 
     # List to store the new resized splits
     resized_split_list = []
@@ -382,6 +398,9 @@ def downsize():
 
         # Scale that split down
         scaled_down_split = cv2.resize(split_img, None, fx=scale_down_factor, fy=scale_down_factor, interpolation=cv2.INTER_LINEAR)
+
+	# Scale that split down to 640x640
+	#scaled_down_split = cv2.resize(split_img, (640, 640), interpolation=cv2.INTER_LINEAR)
 
         # Filename of each resized split
         file_name = './splits_resized/' + str(hash(str(i // num_of_splits) + '_' + str(i % num_of_splits))) + '.jpg'
@@ -444,7 +463,7 @@ def blur():
     global resized_split_list, new_annotation_list
 
     # Specifying a ksize
-    ksize = (2, 2)
+    ksize = (blurAmount, blurAmount)
 
     # List to store the new resized splits
     blurred_list = []
@@ -550,8 +569,8 @@ with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
 
 # Converts the coco json to yolo format for training
-#convert_json2yolo()
+convert_json2yolo()
 
 # Clear out unused dirs
-#clear_dirs()
+clear_dirs()
 ################################################
