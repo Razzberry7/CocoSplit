@@ -42,13 +42,13 @@ seed = sys.argv[4]
 blurFlag = sys.argv[5]
 
 # Blurring K-size
-blurAmount = sys.argv[6]
+blurAmount = int(sys.argv[6])
 
 # Resize Augmentation flag
 resizeFlag = sys.argv[7]
 
 # Resizing Percentage (100 = original size)
-blurFlag = sys.argv[8]
+resizeAmount = int(sys.argv[8])
 
 # Directory that the finished directory will be sent to (passed in from start.py)
 destination_dir = sys.argv[9]
@@ -58,9 +58,11 @@ finished_name = sys.argv[10]
 
 destination_dir = destination_dir + finished_name + "/"
 
-# Blur flag
-blurFlag = sys.argv[6]
-#blurFlag = "Y"
+# Random Splits or Manual Splits flag
+splitFlag = sys.argv[11]
+
+# Dataset folder
+dataFolder = sys.argv[12]
 
 ################################################
 
@@ -78,7 +80,7 @@ for file in files:
         zip_file.close()
 
 # Open the original JSON file, store it as a variable, and close the file
-file = open(dataset_dir + 'train/_annotations.coco.json')
+file = open(dataset_dir + dataFolder + '/_annotations.coco.json')
 old_coco_data = json.load(file)
 file.close()
 
@@ -86,12 +88,12 @@ file.close()
 new_coco_data = \
     {
         "info": {
-            "year": "2022",
+            "year": "2023",
             "version": "1",
             "description": "Exported from roboflow.ai",
             "contributor": "",
-            "url": "https://app.roboflow.ai/datasets/blueberries_moore_drone_6-16-2021/1",
-            "date_created": "2022-01-05T20:45:25+00:00"
+            "url": "https://app.roboflow.ai/datasets/",
+            "date_created": "2023-01-01T20:45:25+00:00"
         },
         "licenses": [
             {
@@ -101,20 +103,18 @@ new_coco_data = \
             }
         ],
         "categories": [
+            # {
+            #     "id": 0,
+            #     "name": "berries",
+            #     "supercategory": "none"
+            # },
             {
                 "id": 0,
-                "name": "berries",
-                "supercategory": "none"
+                "name": "blue"
             },
             {
                 "id": 1,
-                "name": "blue",
-                "supercategory": "berries"
-            },
-            {
-                "id": 2,
-                "name": "green",
-                "supercategory": "berries"
+                "name": "green"
             }
         ],
         "images": [],
@@ -144,7 +144,7 @@ def split_sorted_annotations(sorted_annotations):
     images = old_coco_data['images']
 
     # Access global var
-    global image_annotation_lists
+    global image_annotation_lists, splitFlag
 
     # Create as many lists as there are original images and store that in a list
     for n in range(len(images)):
@@ -161,7 +161,10 @@ def split_sorted_annotations(sorted_annotations):
             j = (j + 1)
 
     # Call the next step to randomly split the images
-    random_split()
+    if splitFlag == "0":
+        random_split()
+    elif splitFlag == "1":
+        manual_split()
 
 # Method to create a random seed to replicate split results on same dataset
 def random_seed(length):
@@ -209,10 +212,10 @@ def random_split():
 
     # Nested while loop that splits images
     i = 0
-    while i < len(os.listdir(dataset_dir + 'train')) - 1:
+    while i < len(os.listdir(dataset_dir + dataFolder)) - 1:
 
         # Import image
-        original_img = cv2.imread(dataset_dir + 'train/' + images[i]["file_name"])
+        original_img = cv2.imread(dataset_dir + dataFolder + '/' + images[i]["file_name"])
 
         # List of splits for each picture
         splits = []
@@ -224,9 +227,9 @@ def random_split():
             #new_height = int(images[i]['height'] / 2)
             #new_width = int(images[i]['width'] / 2)
 
-	    # Creating splits of 640x640 - 1280x1280
-	    new_height = random.randint(640, 1280)
-	    new_width = new_height
+            # Creating splits of 640x640 - 1280x1280
+            new_height = random.randint(640, 1280)
+            new_width = new_height
 
             # Generate random origin (within bounds
             random.seed(seed[j:j + 1:1])
@@ -265,15 +268,90 @@ def random_split():
         i = (i + 1)
 
     # Call next step to adjust the annotations
-    adjust_random_annotations()
+    adjust_annotations()
+
+# Method to manually split the original images
+def manual_split():
+
+    print("Splitting original images...")
+
+    # Access global var - split origins (x,y)
+    global split_origins, seed, num_of_splits
+
+    # Dictionary of images from original coco file
+    images = old_coco_data['images']
+
+    # Create a new folder (if one doesn't exist already)
+    if not os.path.exists("./splits"):
+        os.mkdir("./splits")
+
+    # Delete all existing files in that folder (if any exist)
+    directory = 'splits'
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+        os.remove(f)
+
+    # Nested while loop that splits images
+    i = 0
+    while i < len(os.listdir(dataset_dir + dataFolder)) - 1:
+
+        # Import image
+        original_img = cv2.imread(dataset_dir + dataFolder + '/' + images[i]["file_name"])
+
+        # List of splits for each picture
+        splits = []
+
+        j = 0
+        while j < num_of_splits:
+
+            # Specifying the height/width of the split
+            new_height = int(input("Please enter the new height of the image " + images[i]["file_name"] + ":"))
+            new_width = int(input("Please enter the new width of the image " + images[i]["file_name"] + ":"))
+
+            # Specifiying the origin of the split
+            new_x = int(input("Please enter the new x-origin of the image " + images[i]["file_name"] + ":"))
+            new_y = int(input("Please enter the new y-origin of the image " + images[i]["file_name"] + ":"))
+
+            # Crop the original image to create the split using the above values
+            new_split = original_img[new_y:(new_y + new_height), new_x:(new_x + new_width)]
+
+            # Append the split
+            splits.append(new_split)
+
+            # Append the split origins (we'll need this information later)
+            split_origins.append([new_x, new_y])
+
+            # Filename of each split
+            file_name = './splits/' + str(i) + '_' + str(j) + '_' + str(new_width) + 'x' + str(new_height) + '.jpg'
+
+            # Saving the split
+            cv2.imwrite(file_name, splits[j])
+
+            #### Writing the images to the JSON file ####
+
+            # Create the id var
+            id = hash(str(i) + "_" +  str(j))
+
+            # Create the data_captured var
+            date_captured = images[i]['date_captured']
+
+            # Write new split image to the new JSON file (see helper method for more details)
+            write_new_image(id, 1, file_name, new_height, new_width, date_captured, split_list)
+
+            j = (j + 1)
+
+        i = (i + 1)
+
+    # Call next step to adjust the annotations
+    adjust_annotations()
 
 # Method to adjust the annotations for each split
-def adjust_random_annotations():
+def adjust_annotations():
 
     print("Adjusting annotations for each split...")
 
     # Access global vars
-    global image_annotation_lists, split_origins
+    global image_annotation_lists, split_origins, resizeFlag
 
     # Store original images as a var
     original_images = old_coco_data['images']
@@ -364,7 +442,9 @@ def adjust_random_annotations():
         if j_split_image % num_of_splits == 0:
             i_original_image = (i_original_image + 1)
 
-    downsize()
+    # Call the next step to randomly split the images
+    if resizeFlag == "0":
+        downsize()
 
 # Downsize the split images (better performance in yolov5)
 def downsize():
@@ -382,7 +462,7 @@ def downsize():
         os.remove(f)
 
     # Access global vars
-    global split_list, new_annotation_list, resized_split_list
+    global split_list, new_annotation_list, resized_split_list, resizeAmount
 
     # Specifying a single scale factor
     scale_down_factor = resizeAmount / 100
@@ -505,7 +585,7 @@ def convert_json2yolo():
     print("Converting to yolo...")
 
     # Call the other script to convert the coco to yolo (and prepare the yolo file for use)
-    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized", "./splits_resized/_new_annotations.coco.json", destination_dir, dataset_dir + "/train/", finished_name).convert()
+    coco_to_yolo.ConvertCOCOToYOLO("./splits/", "./splits/_new_annotations.coco.json", destination_dir, dataset_dir + "/" + dataFolder + "/", finished_name).convert()
 
 
 # Clear the dirs created during Cocosplit
@@ -564,8 +644,12 @@ clear_dirs()
 # Starts the program essentially
 sort_annotations()
 
+# # Create destination folder
+# if not os.path.exists(destination_dir):
+#     os.makedirs(destination_dir)
+
 # Save everything to the new JSON file
-with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
+with open('./splits/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
 
 # Converts the coco json to yolo format for training
