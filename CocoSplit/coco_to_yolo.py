@@ -68,7 +68,7 @@ class ConvertCOCOToYOLO:
         h = h*dh
         return (x,y,w,h)
 
-    def convert(self,annotation_key='annotations',img_id='image_id',cat_id='category_id',bbox='bbox'):
+    def convert(self, annotation_key='annotations', img_id='image_id', cat_id='category_id', bbox='bbox'):
         # Enter directory to read JSON file
         data = json.load(open(self.json_path))
         
@@ -78,11 +78,11 @@ class ConvertCOCOToYOLO:
         # Create a new folder (if one doesn't exist already)
         destination_dir = self.destination_dir
         if not os.path.exists(destination_dir):
-            os.mkdir(destination_dir)
+            os.makedirs(destination_dir)
         # Delete all existing files in that folder (if any exist)
         else:
             shutil.rmtree(destination_dir)
-            os.mkdir(destination_dir)
+            os.makedirs(destination_dir)
 
         ### Create a directory to hold the original images
         parent_image_dir = destination_dir + "original_images/"
@@ -130,7 +130,7 @@ class ConvertCOCOToYOLO:
         ### Create a data.yaml file
         with open(destination_dir + 'data.yaml', 'w') as f:
             f.write('train: ../data/weights/' + self.finished_name + '/train/images\n')
-            f.write('val: ../data/weights/' + self.finished_name + '/test/images\n')
+            f.write('val: ../data/weights/' + self.finished_name + '/valid/images\n')
             f.write('\n')
             f.write('nc: 3\n')
             f.write("names: ['berries', 'blue', 'green']")
@@ -160,7 +160,7 @@ class ConvertCOCOToYOLO:
             # Prepare for export
             filename = f'{train_label_dir}{image_id}.txt'
             # Save to run folder that can be renamed
-            content =f"{category_id} {yolo_bbox[0]} {yolo_bbox[1]} {yolo_bbox[2]} {yolo_bbox[3]}"
+            content = f'{category_id} {yolo_bbox[0]} {yolo_bbox[1]} {yolo_bbox[2]} {yolo_bbox[3]}'
 
             # Export 
             if image_id in check_set:

@@ -103,11 +103,11 @@ new_coco_data = \
             }
         ],
         "categories": [
-            # {
-            #     "id": 0,
-            #     "name": "berries",
-            #     "supercategory": "none"
-            # },
+            {
+                "id": 0,
+                "name": "berries",
+                "supercategory": "none"
+            },
             {
                 "id": 0,
                 "name": "blue"
@@ -255,7 +255,7 @@ def random_split():
             #### Writing the images to the JSON file ####
 
             # Create the id var
-            id = hash(str(i) + "_" +  str(j))
+            id = hash(str(i) + "_" + str(j))
 
             # Create the data_captured var
             date_captured = images[i]['date_captured']
@@ -585,7 +585,7 @@ def convert_json2yolo():
     print("Converting to yolo...")
 
     # Call the other script to convert the coco to yolo (and prepare the yolo file for use)
-    coco_to_yolo.ConvertCOCOToYOLO("./splits/", "./splits/_new_annotations.coco.json", destination_dir, dataset_dir + "/" + dataFolder + "/", finished_name).convert()
+    coco_to_yolo.ConvertCOCOToYOLO("./splits_resized/", "./splits_resized/_new_annotations.coco.json", destination_dir, dataset_dir + "/" + dataFolder + "/", finished_name).convert()
 
 
 # Clear the dirs created during Cocosplit
@@ -649,12 +649,12 @@ sort_annotations()
 #     os.makedirs(destination_dir)
 
 # Save everything to the new JSON file
-with open('./splits/_new_annotations.coco.json', 'w') as file2:
+with open('./splits_resized/_new_annotations.coco.json', 'w') as file2:
     json.dump(new_coco_data, file2)
 
 # Converts the coco json to yolo format for training
 convert_json2yolo()
 
 # Clear out unused dirs
-clear_dirs()
+# clear_dirs()
 ################################################
